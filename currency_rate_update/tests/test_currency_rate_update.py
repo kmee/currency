@@ -48,6 +48,26 @@ class TestCurrencyRateUpdate(AccountTestInvoicingCommon):
         )
         cls.CurrencyRate.search([]).unlink()
 
+    def test_display_name_translated(self):
+        """The provider is shown with the selection label in the user language."""
+        self.env["res.lang"]._activate_lang("pt_BR")
+        selection = self.env["ir.model.fields.selection"].search(
+            [
+                ("field_id.model", "=", "res.currency.rate.provider"),
+                ("field_id.name", "=", "service"),
+                ("value", "=", "ECB"),
+            ]
+        )
+        selection.with_context(lang="pt_BR").name = "Banco Central Europeu"
+        provider = self.ecb_provider
+        self.assertEqual(provider.name, "European Central Bank")
+        self.assertEqual(
+            provider.with_context(lang="en_US").display_name, "European Central Bank"
+        )
+        self.assertEqual(
+            provider.with_context(lang="pt_BR").display_name, "Banco Central Europeu"
+        )
+
     def test_supported_currencies_ECB(self):
         self.ecb_provider._get_supported_currencies()
 
